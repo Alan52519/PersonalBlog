@@ -7,17 +7,34 @@
       <li v-for="article in articles" :key="article.id">
         <h3>{{ article.title }}</h3>
         <p>{{ article.content }}</p>
-        <small>创建时间: {{ formatDate(article.created_at) }}</small>
+        <div class="article-meta">
+          <small>创建时间: {{ formatDate(article.createdAt) }}</small>
+          <small class="author">作者: {{ article.authorName || '匿名' }}</small>
+        </div>
       </li>
     </ul>
   </div>
+   <div class="pagination">
+      <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">上一页</button>
+      <span>第 {{ currentPage }} 页</span>
+      <button :disabled="currentPage * pageSize >= total" @click="changePage(currentPage + 1)">下一页</button>
+    </div>
+
+    <div>
+      <button @click="handleClick">去创作</button>
+    </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
 
+const router = useRouter() // ✅ 初始化 router
 const articles = ref([])
+const currentPage = ref(1)
+const pageSize = ref(5)
+const total = ref(0)
 
 // 从 localStorage 获取 token
 const token = localStorage.getItem('token')
@@ -30,20 +47,36 @@ const request = axios.create({
   }
 })
 
+// 加载文章
 const loadArticles = async () => {
   try {
-    const res = await request.get('/posts')
-    articles.value = res.data
-    console.log('获取文章列表成功:', res.data)
+    const res = await request.get('/posts', {
+      params: {
+        page: currentPage.value,
+        size: pageSize.value
+      }
+    })
+    articles.value = res.data.records
+    total.value = res.data.total
   } catch (err) {
-    console.error('获取文章失败:', err)
-    alert('获取文章失败')
+    console.error('加载文章失败', err)
   }
 }
 
 const formatDate = (dateStr) => {
-  const date = new Date(dateStr)
-  return date.toLocaleString()
+  if (!dateStr) return "未知时间";
+  // 将后端 "2025-09-18T10:35:09" 格式转成可以解析的 Date
+  const date = new Date(dateStr.replace("T", " "));
+  return date.toLocaleString();
+}
+
+const changePage = (page) => {
+  currentPage.value = page
+  loadArticles()
+}
+
+const handleClick = () => {
+  router.push('/newpost')
 }
 
 onMounted(() => {
@@ -72,5 +105,18 @@ h3 {
 }
 small {
   color: #999;
+}
+.article-meta {
+  display: flex;
+  justify-content: space-between; /* 左右分开 */
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.article-meta .author {
+  text-align: right;
+}
+.pagination {
+  margin-top: 20px;
 }
 </style>

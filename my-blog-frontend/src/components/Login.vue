@@ -10,9 +10,13 @@
         <label>密码:</label>
         <input v-model="password" type="password" required />
       </div>
-      <button type="submit">登录</button>
+      <button type="submit">登录</button>   
+      <button @click="handleClick" style="margin-left: 200px;">注册</button>
     </form>
     <p v-if="message">{{ message }}</p>
+  </div>
+  <div>
+    
   </div>
 </template>
 
@@ -25,6 +29,10 @@ const username = ref('')
 const password = ref('')
 const message = ref('')
 const router = useRouter()
+
+const handleClick = () => {
+  router.push('/register')
+}
 
 const login = async () => {
   try {

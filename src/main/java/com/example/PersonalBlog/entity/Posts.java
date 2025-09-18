@@ -1,7 +1,10 @@
 package com.example.PersonalBlog.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 /**
  * @author 赵进
@@ -12,6 +15,6 @@ import lombok.Data;
 public class Posts {
     private String title;
     private String content;
-    private String created_at;
-    private String user_id;
+    private LocalDateTime createdAt;
+    private Long userId;
 }

@@ -1,10 +1,20 @@
 package com.example.PersonalBlog.entity;
 
 /**
-    *
-    *
-    *@date 2025/9/18
-    *@author 赵进
-    *
-    */public class PostsVO {
+ * @author 赵进
+ * @date 2025/9/18
+ */
+import com.baomidou.mybatisplus.annotation.TableField;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+public class PostsVO {
+    private Long id;
+    private String title;
+    private String content;
+    private LocalDateTime createdAt;
+    private Long userId;
+    private String authorName;
 }
