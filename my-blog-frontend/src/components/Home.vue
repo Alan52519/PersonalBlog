@@ -23,6 +23,10 @@
     <div>
       <button @click="handleClick">去创作</button>
     </div>
+    <div>
+      <button @click="aihandleClick">AI助手</button>
+    </div>
+    <button @click="logout">退出登录</button>
 </template>
 
 <script setup>
@@ -77,6 +81,15 @@ const changePage = (page) => {
 
 const handleClick = () => {
   router.push('/newpost')
+}
+
+const aihandleClick = () => {
+  router.push('/chat')
+}
+
+const logout = () =>{
+  localStorage.removeItem("token");
+  router.push("/login");
 }
 
 onMounted(() => {

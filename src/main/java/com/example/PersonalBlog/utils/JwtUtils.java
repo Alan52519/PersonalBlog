@@ -14,7 +14,7 @@ import java.util.Date;
 public class JwtUtils {
 
     private static final String SECRET_KEY = "your-secret-key"; // 建议配置到 application.yml
-    private static final long EXPIRATION_TIME = 86400000; // 1 天
+    private static final long EXPIRATION_TIME = 3600000; // 1 小时
 
     // 生成 token
     public static String generateToken(User user) {

@@ -16,4 +16,15 @@ request.interceptors.request.use(config => {
   return config;
 }, error => Promise.reject(error));
 
+// 响应拦截器：发现 401 自动登出
+request.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 export default request;
