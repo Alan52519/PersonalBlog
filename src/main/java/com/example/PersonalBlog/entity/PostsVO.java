@@ -4,7 +4,6 @@ package com.example.PersonalBlog.entity;
  * @author 赵进
  * @date 2025/9/18
  */
-import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 import java.time.LocalDateTime;

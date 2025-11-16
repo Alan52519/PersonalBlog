@@ -19,18 +19,12 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import request from '@/utils/request.js';
 
 const title = ref('')
 const content = ref('')
 const router = useRouter()
 
-const token = localStorage.getItem('token')
-const request = axios.create({
-  baseURL: 'http://localhost:9900',
-  headers: {
-    Authorization: `Bearer ${token}`
-  }
-})
 
 const submitPost = async () => {
   try {

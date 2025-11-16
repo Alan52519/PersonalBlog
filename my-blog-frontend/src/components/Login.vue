@@ -11,7 +11,7 @@
         <input v-model="password" type="password" required />
       </div>
       <button type="submit">登录</button>   
-      <button @click="handleClick" style="margin-left: 200px;">注册</button>
+      <!--<button @click="handleClick" style="margin-left: 200px;">注册</button>-->
     </form>
     <p v-if="message">{{ message }}</p>
   </div>
@@ -24,6 +24,7 @@
 import { ref } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import request from '@/utils/request.js';
 
 const username = ref('')
 const password = ref('')
@@ -33,25 +34,28 @@ const router = useRouter()
 const handleClick = () => {
   router.push('/register')
 }
-
 const login = async () => {
   try {
-    const res = await axios.post('http://localhost:9900/login', {
+    // 清理旧 token
+    localStorage.removeItem('token');
+
+    const res = await request.post(`/login`, {
       username: username.value,
       password: password.value
-    })
+    });
 
-    // 保存 token
-    localStorage.setItem('token', res.data.token)
-    console.log('保存的 token:', res.data.token)
+    // 保存 token（根据实际返回结构调整）
+    localStorage.setItem('token', res.data.token);
 
-    message.value = '登录成功'
-    router.push('/Home') // 跳转到 Home 页面
+    console.log('保存的 token:', res.data.token);
+    message.value = '登录成功';
+
+    router.push('/Home'); // 跳转
   } catch (err) {
-    message.value = err.response?.data || err.message
-    console.error('登录失败:', message.value)
+    message.value = err.response?.data?.message || err.message;
+    console.error('登录失败:', message.value);
   }
-}
+};
 </script>
 
 <style scoped>

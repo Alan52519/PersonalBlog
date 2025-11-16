@@ -36,6 +36,7 @@ public class JwtAuthenticationFilter implements Filter {
                         .parseClaimsJws(token)
                         .getBody();
 
+                Long userId = claims.get("userId", Long.class);
                 String username = claims.getSubject();
                 String role = claims.get("role", String.class);
 

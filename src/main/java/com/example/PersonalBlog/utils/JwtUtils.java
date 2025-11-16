@@ -6,6 +6,7 @@ package com.example.PersonalBlog.utils;
  */
 
 import com.example.PersonalBlog.entity.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
@@ -14,12 +15,13 @@ import java.util.Date;
 public class JwtUtils {
 
     private static final String SECRET_KEY = "your-secret-key"; // 建议配置到 application.yml
-    private static final long EXPIRATION_TIME = 3600000; // 1 小时
+    private static final long EXPIRATION_TIME = 2*3600000; // 1 小时
 
     // 生成 token
     public static String generateToken(User user) {
         return Jwts.builder()
                 .setSubject(user.getUsername())
+                .claim("userId", user.getId())
                 .claim("role", user.getRole())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
@@ -34,6 +36,20 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+    public static Claims getClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(SECRET_KEY)
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public static Long getUserIdFromToken(String token) {
+        return Jwts.parser()
+                .setSigningKey(SECRET_KEY)
+                .parseClaimsJws(token)
+                .getBody()
+                .get("userId", Long.class);
     }
 }
 

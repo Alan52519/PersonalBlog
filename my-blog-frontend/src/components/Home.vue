@@ -1,10 +1,18 @@
-
 <template>
   <div class="home-container">
-    <h1>📚 文章列表</h1>
-    <div v-if="articles.length === 0">暂无文章</div>
-    <ul>
-      <li v-for="article in articles" :key="article.id">
+    <header class="home-header">
+      <h1>📚 文章列表</h1>
+      <div class="header-buttons">
+        <button @click="handleClick" class="primary-btn">去创作</button>
+        <button @click="aihandleClick" class="primary-btn">AI助手</button>
+        <button @click="logout" class="logout-btn">退出登录</button>
+      </div>
+    </header>
+
+    <div v-if="articles.length === 0" class="no-articles">暂无文章</div>
+
+    <ul class="article-list">
+      <li v-for="article in articles" :key="article.id" class="article-card">
         <h3>{{ article.title }}</h3>
         <p>{{ article.content }}</p>
         <div class="article-meta">
@@ -13,45 +21,26 @@
         </div>
       </li>
     </ul>
-  </div>
-   <div class="pagination">
+
+    <div class="pagination">
       <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">上一页</button>
       <span>第 {{ currentPage }} 页</span>
       <button :disabled="currentPage * pageSize >= total" @click="changePage(currentPage + 1)">下一页</button>
     </div>
-
-    <div>
-      <button @click="handleClick">去创作</button>
-    </div>
-    <div>
-      <button @click="aihandleClick">AI助手</button>
-    </div>
-    <button @click="logout">退出登录</button>
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
 import { useRouter } from 'vue-router'
+import request from '@/utils/request.js'
 
-const router = useRouter() // ✅ 初始化 router
+const router = useRouter()
 const articles = ref([])
 const currentPage = ref(1)
 const pageSize = ref(5)
 const total = ref(0)
 
-// 从 localStorage 获取 token
-const token = localStorage.getItem('token')
-
-// 创建 axios 实例，带上 token
-const request = axios.create({
-  baseURL: 'http://localhost:9900',
-  headers: {
-    Authorization: `Bearer ${token}`
-  }
-})
-
-// 加载文章
 const loadArticles = async () => {
   try {
     const res = await request.get('/posts', {
@@ -68,10 +57,9 @@ const loadArticles = async () => {
 }
 
 const formatDate = (dateStr) => {
-  if (!dateStr) return "未知时间";
-  // 将后端 "2025-09-18T10:35:09" 格式转成可以解析的 Date
-  const date = new Date(dateStr.replace("T", " "));
-  return date.toLocaleString();
+  if (!dateStr) return "未知时间"
+  const date = new Date(dateStr.replace("T", " "))
+  return date.toLocaleString()
 }
 
 const changePage = (page) => {
@@ -79,57 +67,134 @@ const changePage = (page) => {
   loadArticles()
 }
 
-const handleClick = () => {
-  router.push('/newpost')
+const handleClick = () => router.push('/newpost')
+const aihandleClick = () => router.push('/chat')
+const logout = () => {
+  localStorage.removeItem("token")
+  router.push("/login")
 }
 
-const aihandleClick = () => {
-  router.push('/chat')
-}
-
-const logout = () =>{
-  localStorage.removeItem("token");
-  router.push("/login");
-}
-
-onMounted(() => {
-  loadArticles()
-})
+onMounted(() => loadArticles())
 </script>
 
 <style scoped>
 .home-container {
-  max-width: 800px;
-  margin: 20px auto;
-  padding: 10px;
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 0 15px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-ul {
+
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-buttons button {
+  margin-left: 10px;
+}
+
+.primary-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.primary-btn:hover {
+  background-color: #45a049;
+}
+
+.logout-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.logout-btn:hover {
+  background-color: #d32f2f;
+}
+
+.no-articles {
+  text-align: center;
+  margin: 30px 0;
+  color: #888;
+  font-size: 1.2rem;
+}
+
+.article-list {
   list-style: none;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
 }
-li {
+
+.article-card {
   border: 1px solid #ddd;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 6px;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: box-shadow 0.3s, transform 0.3s;
 }
-h3 {
-  margin: 0 0 5px 0;
+.article-card:hover {
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
 }
-small {
-  color: #999;
+
+.article-card h3 {
+  margin: 0 0 10px;
+  font-size: 1.2rem;
+  color: #333;
 }
+
+.article-card p {
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 12px;
+}
+
 .article-meta {
   display: flex;
-  justify-content: space-between; /* 左右分开 */
+  justify-content: space-between;
   font-size: 0.85rem;
-  color: #666;
+  color: #777;
 }
 
 .article-meta .author {
   text-align: right;
 }
+
 .pagination {
-  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 25px 0;
+}
+
+.pagination button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  margin: 0 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.pagination button:hover:not(:disabled) {
+  background-color: #45a049;
 }
 </style>
