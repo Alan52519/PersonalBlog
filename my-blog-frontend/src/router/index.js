@@ -5,6 +5,7 @@ import Home from '../components/Home.vue';
 import NewPost from '../components/NewPost.vue';
 import Chat from '../components/Chat.vue';
 import Edit from '../components/EditPost.vue';
+import ArticleDetail from '../components/ArticleDetail.vue';
 
 const routes = [
   { path: '/login', component: Login },
@@ -14,6 +15,10 @@ const routes = [
   { path: '/newpost', component: NewPost, meta: { requiresAuth: true } },
   { path: '/chat', component: Chat, meta: { requiresAuth: true } },
  { path: '/edit/:id', component: Edit, meta: { requiresAuth: true } },
+ {
+    path: '/article/:id', // :id 是动态参数
+    component: ArticleDetail,  meta: { requiresAuth: true }
+  },
   { path: '/', redirect: '/login' }, // 默认重定向
 ];
 

@@ -42,10 +42,32 @@ public class PostsController {
     @GetMapping
     public ResponseEntity<?> getAllPosts(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "9") int size) {
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(required = false) String keyword) { // 1. 新增 keyword 参数
 
+        // 构建分页对象
         Page<Posts> postPage = new Page<>(page, size);
-        postsMapper.selectPage(postPage, null);
+
+        // 2. 构建查询条件 Wrapper
+        QueryWrapper<Posts> queryWrapper = new QueryWrapper<>();
+
+        // 建议：按创建时间倒序排列（最新发布的在前面）
+        queryWrapper.orderByDesc("created_at");
+
+        // 3. 核心搜索逻辑：如果 keyword 存在且不为空，拼接查询条件
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            // 生成 SQL 类似: AND (title LIKE '%keyword%' OR content LIKE '%keyword%')
+            queryWrapper.and(wrapper ->
+                    wrapper.like("title", keyword)
+                            .or()
+                            .like("content", keyword)
+            );
+        }
+
+        // 4. 执行查询 (传入 queryWrapper 而不是 null)
+        postsMapper.selectPage(postPage, queryWrapper);
+
+        // --- 以下保持您原有的 VO 转换逻辑不变 ---
 
         List<PostsVO> result = new ArrayList<>();
         for (Posts post : postPage.getRecords()) {
