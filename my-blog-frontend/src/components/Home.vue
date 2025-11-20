@@ -19,6 +19,10 @@
           <small>创建时间: {{ formatDate(article.createdAt) }}</small>
           <small class="author">作者: {{ article.authorName || '匿名' }}</small>
         </div>
+        <div class="article-actions" v-if="article.authorName === currentUser">
+          <button class="edit-btn" @click="editPost(article.id)">编辑</button>
+          <button class="delete-btn" @click="deletePost(article.id)">删除</button>
+        </div>
       </li>
     </ul>
 
@@ -34,12 +38,14 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '@/utils/request.js'
+import { getCurrentUser } from "@/utils/auth.js"
 
 const router = useRouter()
 const articles = ref([])
 const currentPage = ref(1)
-const pageSize = ref(5)
+const pageSize = ref(9)
 const total = ref(0)
+const currentUser = getCurrentUser().username
 
 const loadArticles = async () => {
   try {
@@ -73,6 +79,28 @@ const logout = () => {
   localStorage.removeItem("token")
   router.push("/login")
 }
+
+const deletePost = async (id) => {
+  if (!confirm("确定要删除这篇文章吗？")) return;
+
+  try {
+    console.log(id);
+    await request.delete(`/posts/${id}`);
+
+    // 删除本地列表中的
+    articles.value = articles.value.filter(a => a.id !== id);
+
+    alert("删除成功");
+  } catch (err) {
+    console.error("删除失败", err);
+    alert("删除失败，请检查权限或登录状态");
+  }
+};
+
+const editPost = async (id) => {
+   router.push(`/edit/${id}`) 
+
+};
 
 onMounted(() => loadArticles())
 </script>

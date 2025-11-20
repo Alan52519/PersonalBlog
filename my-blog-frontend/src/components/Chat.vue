@@ -52,6 +52,7 @@
 
 <script>
 import { marked } from "marked";
+import { BASE_URL } from "../config";
 
 export default {
   data() {
@@ -84,7 +85,7 @@ export default {
     async loadSessions() {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://192.168.31.12:9900/session/getSessions', {
+        const res = await fetch(BASE_URL+'/session/getSessions', {
           headers: {
             "Authorization": `Bearer ${token}`,
           }
@@ -122,7 +123,7 @@ export default {
       try {
         const token = localStorage.getItem('token');
 
-        const res = await fetch('http://192.168.31.12:9900/chat', {
+        const res = await fetch(BASE_URL+'/chat', {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -171,7 +172,7 @@ export default {
 
       const token = localStorage.getItem("token");
       try {
-        const res = await fetch(`http://192.168.31.12:9900/session/${session.id}/title`, {
+        const res = await fetch(BASE_URL+`/session/${session.id}/title`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -197,7 +198,7 @@ export default {
 
       const token = localStorage.getItem("token");
       try {
-        const res = await fetch(`http://192.168.31.12:9900/session/${session.id}`, {
+        const res = await fetch(BASE_URL+`/session/${session.id}`, {
           method: "DELETE",
           headers: {
             "Authorization": `Bearer ${token}`

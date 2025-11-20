@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class PostsVO {
+
     private Long id;
     private String title;
     private String content;

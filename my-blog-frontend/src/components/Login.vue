@@ -47,7 +47,7 @@ const login = async () => {
     // 保存 token（根据实际返回结构调整）
     localStorage.setItem('token', res.data.token);
 
-    console.log('保存的 token:', res.data.token);
+    //console.log('保存的 token:', res.data.token);
     message.value = '登录成功';
 
     router.push('/Home'); // 跳转

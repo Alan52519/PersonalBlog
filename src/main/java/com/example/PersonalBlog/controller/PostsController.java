@@ -42,7 +42,7 @@ public class PostsController {
     @GetMapping
     public ResponseEntity<?> getAllPosts(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "9") int size) {
 
         Page<Posts> postPage = new Page<>(page, size);
         postsMapper.selectPage(postPage, null);
@@ -116,6 +116,116 @@ public class PostsController {
            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("发布失败");
        }
    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getPostById(@PathVariable Long id) {
+
+        Posts post = postsMapper.selectById(id);
+        if (post == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("文章不存在");
+        }
+
+        // 构建返回对象
+        PostsVO vo = new PostsVO();
+        BeanUtils.copyProperties(post, vo);
+
+        // 设置作者名
+        if (post.getUserId() != null) {
+            User user = userMapper.selectById(post.getUserId());
+            if (user != null) {
+                vo.setAuthorName(user.getUsername());
+            } else {
+                vo.setAuthorName("未知作者");
+            }
+        } else {
+            vo.setAuthorName("匿名");
+        }
+
+        return ResponseEntity.ok(vo);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePost(@PathVariable Long id, @RequestBody Posts post, HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("缺少或非法的 token");
+        }
+
+        String username;
+        try {
+            username = JwtUtils.getUsernameFromToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("token 解析失败");
+        }
+
+        // 查找文章
+        Posts existingPost = postsMapper.selectById(id);
+        if (existingPost == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("文章不存在");
+        }
+
+        // 检查用户是否是作者
+        User user = userMapper.selectOne(new QueryWrapper<User>().eq("username", username));
+        if (!existingPost.getUserId().equals(user.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("无权修改");
+        }
+
+        existingPost.setTitle(post.getTitle());
+        existingPost.setContent(post.getContent());
+        postsMapper.updateById(existingPost);
+
+        return ResponseEntity.ok("修改成功");
+    }
+
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePost(@PathVariable Long id, HttpServletRequest request) {
+        // 1. 获取 Token
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("缺少或非法的 token");
+        }
+
+        // 2. 解析用户名
+        String username;
+        try {
+            username = JwtUtils.getUsernameFromToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("token 解析失败");
+        }
+
+        // 3. 查用户
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+        User user = userMapper.selectOne(queryWrapper);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("用户不存在");
+        }
+
+        // 4. 查文章
+        Posts post = postsMapper.selectById(id);
+        if (post == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("文章不存在");
+        }
+
+        // 5. 权限校验：只能删自己的文章
+        if (!post.getUserId().equals(user.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("你不能删除别人的文章");
+        }
+
+        // 6. 执行删除
+        int result = postsMapper.deleteById(id);
+        if (result > 0) {
+            return ResponseEntity.ok("删除成功");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("删除失败");
+        }
+    }
 
 }
 

@@ -4,6 +4,7 @@ import Register from '../components/Register.vue';
 import Home from '../components/Home.vue';
 import NewPost from '../components/NewPost.vue';
 import Chat from '../components/Chat.vue';
+import Edit from '../components/EditPost.vue';
 
 const routes = [
   { path: '/login', component: Login },
@@ -12,7 +13,7 @@ const routes = [
   { path: '/home', component: Home, meta: { requiresAuth: true } },
   { path: '/newpost', component: NewPost, meta: { requiresAuth: true } },
   { path: '/chat', component: Chat, meta: { requiresAuth: true } },
-
+ { path: '/edit/:id', component: Edit, meta: { requiresAuth: true } },
   { path: '/', redirect: '/login' }, // 默认重定向
 ];
 
