@@ -17,4 +17,5 @@ public class PostsVO {
     private LocalDateTime createdAt;
     private Long userId;
     private String authorName;
+    private Integer likes;
 }

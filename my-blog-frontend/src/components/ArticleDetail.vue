@@ -16,6 +16,23 @@
       <main class="body-text">
         {{ article.content }}
       </main>
+      <div class="like-section">
+      <button class="like-btn" @click="likeArticle">👍 点赞</button>
+       <span class="like-count">❤️ {{ article.likes || 0 }} 个赞</span>
+      </div>
+      <div class="comments">
+  <h3>评论区</h3>
+
+  <div v-for="c in comments" :key="c.id" class="comment-item">
+    <p><strong>{{ c.username }}</strong> · {{ formatDate(c.createdAt) }}</p>
+    <p>{{ c.content }}</p>
+    <hr>
+  </div>
+
+  <textarea v-model="commentText" placeholder="写下你的评论..." class="comment-input"></textarea>
+  
+  <button @click="submitComment" class="comment-btn">发表评论</button>
+ </div>
     </div>
 
     <div v-else class="error-state">
@@ -52,6 +69,39 @@ const loadArticleDetail = async () => {
     alert('获取文章详情失败')
   } finally {
     loading.value = false
+  }
+}
+
+const comments = ref([])
+
+const loadComments = async () => {
+  const res = await request.get(`/posts/${articleId}/comments`)
+  comments.value = res.data
+}
+
+const commentText = ref("")
+
+const submitComment = async () => {
+  if (!commentText.value.trim()) {
+    alert("评论不能为空")
+    return
+  }
+
+  await request.post(`/posts/${articleId}/comments`, {
+    content: commentText.value
+  })
+
+  commentText.value = ""
+  loadComments()
+}
+
+const likeArticle = async () => {
+  try {
+    const res = await request.post(`/posts/${articleId}/like`)
+    article.value.likes = res.data
+  } catch (err) {
+    console.error("点赞失败", err)
+    alert("点赞失败")
   }
 }
 
@@ -145,5 +195,110 @@ hr {
     padding: 50px;
     color: #666;
     font-size: 1.2rem;
+}
+.like-section {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+}
+
+.like-btn {
+    background-color: #ff7675;
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: 0.2s;
+}
+
+.like-btn:hover {
+    background-color: #e84343;
+    transform: translateY(-1px);
+}
+
+.like-count {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.comments {
+    margin-top: 40px;
+    padding: 20px;
+    background: #fafafa;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.comments h3 {
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    color: #333;
+    border-left: 4px solid #4CAF50;
+    padding-left: 10px;
+}
+
+/* ==================== 评论项 ==================== */
+.comment-item {
+    padding: 15px 10px;
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+}
+
+.comment-item p {
+    margin: 5px 0;
+    line-height: 1.6;
+}
+
+.comment-item strong {
+    color: #2c3e50;
+}
+
+.comment-item hr {
+    border: none;
+    border-top: 1px dashed #ddd;
+    margin-top: 10px;
+}
+
+/* ==================== 评论输入框 ==================== */
+.comment-input {
+    width: 100%;
+    height: 90px;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 1rem;
+    resize: vertical;
+    transition: border-color .2s;
+}
+
+.comment-input:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, .2);
+}
+
+/* ==================== 提交按钮 ==================== */
+.comment-btn {
+    margin-top: 12px;
+    padding: 10px 25px;
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.comment-btn:hover {
+    background-color: #45a049;
+    transform: translateY(-1px);
 }
 </style>

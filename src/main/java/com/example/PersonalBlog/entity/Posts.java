@@ -20,4 +20,5 @@ public class Posts {
     private String content;
     private LocalDateTime createdAt;
     private Long userId;
+    private Integer likes;
 }

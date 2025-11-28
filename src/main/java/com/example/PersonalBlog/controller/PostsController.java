@@ -8,9 +8,8 @@ package com.example.PersonalBlog.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.PersonalBlog.entity.Posts;
-import com.example.PersonalBlog.entity.PostsVO;
-import com.example.PersonalBlog.entity.User;
+import com.example.PersonalBlog.entity.*;
+import com.example.PersonalBlog.mapper.CommentsMapper;
 import com.example.PersonalBlog.mapper.PostsMapper;
 import com.example.PersonalBlog.mapper.UserMapper;
 import com.example.PersonalBlog.utils.JwtUtils;
@@ -165,6 +164,43 @@ public class PostsController {
 
         return ResponseEntity.ok(vo);
     }
+
+    @PostMapping("/{id}/like")
+    public ResponseEntity<?> likePost(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+
+        String token = request.getHeader("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("缺少 token");
+        }
+
+        token = token.substring(7);
+        Long userId;
+
+        try {
+            userId = JwtUtils.getUserIdFromToken(token); // 你要有这个方法
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("token 无效");
+        }
+
+        Posts post = postsMapper.selectById(id);
+        if (post == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("文章不存在");
+        }
+
+        // 点赞 +1
+        post.setLikes(post.getLikes() + 1);
+        postsMapper.updateById(post);
+
+        return ResponseEntity.ok(post.getLikes());
+    }
+
+
+
+
+
+
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updatePost(@PathVariable Long id, @RequestBody Posts post, HttpServletRequest request) {
