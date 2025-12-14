@@ -27,5 +27,11 @@ public class ChatSession {
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatMessage> messages;
 
+    @OneToOne(
+            mappedBy = "session",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private ChatSessionSummary summary;
     // getter/setter
 }

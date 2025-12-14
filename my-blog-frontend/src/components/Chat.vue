@@ -101,9 +101,12 @@ export default {
     },
 
     newSession() {
-      const id = Date.now();
-      this.sessions.push({ id, title: "新对话", messages: [] });
-      this.currentSessionId = id;
+     this.sessions.push({
+      id: null,          // 等后端返回
+      title: "新对话",
+      messages: []
+     });
+     this.currentSessionId = null;
     },
 
     selectSession(id) {
@@ -111,59 +114,61 @@ export default {
     },
 
     async sendMessage() {
-      if (!this.input || !this.currentSessionId) return;
+  if (!this.input) return;
 
-      const session = this.sessions.find(s => s.id === this.currentSessionId);
+  let session =
+    this.sessions.find(s => s.id === this.currentSessionId) ||
+    this.sessions.find(s => s.id === null);
 
-      // 显示用户消息
-      session.messages.push({ role: "user", content: this.input });
-      const userInput = this.input;
-      this.input = "";
+  const userInput = this.input;
+  this.input = "";
 
-      try {
-        const token = localStorage.getItem('token');
+  session.messages.push({ role: "user", content: userInput });
 
-        const res = await fetch(BASE_URL+'/chat', {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            model: "qwen3:4b",
-            messages: [{ role: "user", content: userInput }],
-            sessionId: this.currentSessionId,
-            stream: false
-          })
-        });
+  try {
+    const token = localStorage.getItem("token");
 
-        const data = await res.json();
+    const body = {
+      model: "qwen3:4b",
+      messages: [{ role: "user", content: userInput }],
+      stream: false
+    };
 
-        if (data.response && data.response.message) {
-          session.messages.push({
-            role: "assistant",
-            content: data.response.message.content,
-          });
-        } else {
-          session.messages.push({
-            role: "assistant",
-            content: "后端返回格式不正确",
-          });
-        }
+    if (session.id) {
+      body.sessionId = session.id;
+    }
 
-        // 更新 sessionId
-        if (data.sessionId && data.sessionId !== this.currentSessionId) {
-          this.currentSessionId = data.sessionId;
-        }
+    const res = await fetch(BASE_URL + "/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(body)
+    });
 
-      } catch (err) {
-        console.error("调用后端出错:", err);
-        session.messages.push({
-          role: "assistant",
-          content: "调用后端出错，请稍后重试",
-        });
-      }
-    },
+    const data = await res.json();
+
+    session.messages.push({
+      role: "assistant",
+      content: data?.response?.message?.content || "后端返回异常"
+    });
+
+    // ⭐ 后端创建 session 后回填
+    if (data.sessionId && !session.id) {
+      session.id = data.sessionId;
+      this.currentSessionId = data.sessionId;
+    }
+
+  } catch (err) {
+    console.error("调用后端出错:", err);
+    session.messages.push({
+      role: "assistant",
+      content: "调用后端出错，请稍后重试"
+    });
+  }
+},
+
 
     // 修改会话标题
     async editTitle(session) {
